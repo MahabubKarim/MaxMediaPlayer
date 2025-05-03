@@ -35,12 +35,13 @@ A modern Android music streaming app with offline capabilities, built using cutt
 | **Navigation**         | Compose Navigation                  |
 
 ### Architecture
-com.mmk.maxmediaplayer/
+```com.mmk.maxmediaplayer/
 ├── data/ # Data layer (Repositories, DAOs)
 ├── domain/ # Business logic (Models, UseCases)
 ├── presentation/ # UI (Composables, ViewModels)
 ├── di/ # Dependency Injection
 └── service/ # Background services
+```
 
 ## Screenshots 📱
 
