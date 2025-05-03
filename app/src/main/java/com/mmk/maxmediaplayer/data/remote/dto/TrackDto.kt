@@ -1,4 +1,4 @@
-package com.mmk.maxmediaplayer.data.model.remote
+package com.mmk.maxmediaplayer.data.remote.dto
 
 import com.google.gson.annotations.SerializedName
 

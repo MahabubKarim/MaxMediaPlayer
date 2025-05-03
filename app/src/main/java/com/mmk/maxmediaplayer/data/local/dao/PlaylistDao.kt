@@ -28,8 +28,8 @@ interface PlaylistDao {
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insertTrackToPlaylist(join: PlaylistTrackJoin)
 
-    @Delete
-    suspend fun removeTrackFromPlaylist(join: PlaylistTrackJoin)
+    @Query("DELETE FROM playlist_track_join WHERE playlistId = :playlistId AND trackId = :trackId")
+    suspend fun removeTrackFromPlaylist(playlistId: String, trackId: String)
 
     @Query("""
         SELECT COUNT(*) FROM playlist_track_join 
@@ -37,19 +37,9 @@ interface PlaylistDao {
     """)
     suspend fun isTrackInPlaylist(playlistId: String, trackId: String): Int
 
-    /*
-    @Query("""
-        SELECT tracks.id, tracks.title, tracks.artist, tracks.duration,
-               tracks.audioUrl, tracks.imageUrl, tracks.lastPlayed, tracks.isFavorite
-        FROM tracks
-        INNER JOIN playlist_track_join ON tracks.id = playlist_track_join.trackId
-        WHERE playlist_track_join.playlistId = :playlistId
-        ORDER BY playlist_track_join.position ASC
-    """)
-    * */
     @RewriteQueriesToDropUnusedColumns
     @Query("""
-        SELECT * FROM tracks 
+        SELECT tracks.* FROM tracks 
         INNER JOIN playlist_track_join ON tracks.id = playlist_track_join.trackId
         WHERE playlist_track_join.playlistId = :playlistId
         ORDER BY playlist_track_join.position ASC

@@ -3,18 +3,18 @@ package com.mmk.maxmediaplayer.di
 import android.app.PendingIntent
 import android.content.Context
 import android.content.Intent
-import androidx.core.app.NotificationCompat
+import androidx.annotation.OptIn
 import androidx.media3.common.AudioAttributes
 import androidx.media3.common.BuildConfig
 import androidx.media3.common.C
+import androidx.media3.common.util.UnstableApi
 import androidx.media3.exoplayer.ExoPlayer
 import androidx.media3.session.MediaSession
-import androidx.media3.session.MediaSessionService
 import com.google.gson.Gson
 import com.google.gson.GsonBuilder
 import com.mmk.maxmediaplayer.MainActivity
-import com.mmk.maxmediaplayer.R
-import com.mmk.maxmediaplayer.data.remote.JamendoApi
+import com.mmk.maxmediaplayer.data.remote.api.JamendoApi
+import com.mmk.maxmediaplayer.service.PlaybackService
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
@@ -105,5 +105,19 @@ object AppModule {
         return MediaSession.Builder(context, player)
             .setSessionActivity(pendingIntent)  // Properly set pending intent
             .build()
+    }
+
+    @OptIn(UnstableApi::class)
+    @Provides
+    @Singleton
+    fun providePlaybackService(
+        @ApplicationContext context: Context,
+        player: ExoPlayer,
+        mediaSession: MediaSession
+    ): PlaybackService {
+        return PlaybackService().apply {
+            this.player = player
+            this.mediaSession = mediaSession
+        }
     }
 }

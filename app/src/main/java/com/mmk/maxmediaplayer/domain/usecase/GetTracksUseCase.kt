@@ -56,7 +56,7 @@ class GetTracksUseCase @Inject constructor(
         } catch (e: Exception) {
             emit(Resource.Error(
                 message = e.message ?: "Unknown error occurred",
-                data = repository.getTracksOnce()  // Fallback to cached data
+                data = repository.getTracksOnce()  // Now using the dedicated method
             ))
         }
     }

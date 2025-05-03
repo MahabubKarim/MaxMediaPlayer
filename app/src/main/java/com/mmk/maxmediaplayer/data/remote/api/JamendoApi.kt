@@ -1,0 +1,37 @@
+package com.mmk.maxmediaplayer.data.remote.api
+
+import com.mmk.maxmediaplayer.data.remote.dto.PlaylistDto
+import com.mmk.maxmediaplayer.data.remote.dto.TrackDto
+import retrofit2.Response
+import retrofit2.http.GET
+import retrofit2.http.Query
+
+interface JamendoApi {
+    @GET("tracks/")
+    suspend fun getTracks(
+        @Query("client_id") clientId: String,
+        @Query("format") format: String = "jsonpretty",
+        @Query("limit") limit: Int = 50,
+        @Query("offset") offset: Int = 0
+    ): Response<TracksResponse>
+
+    @GET("playlists/")
+    suspend fun getFeaturedPlaylists(
+        @Query("client_id") clientId: String,
+        @Query("featured") featured: Boolean = true,
+        @Query("format") format: String = "jsonpretty",
+        @Query("limit") limit: Int = 10
+    ): Response<FeaturedPlaylistsResponse>
+
+    companion object {
+        const val BASE_URL = "https://api.jamendo.com/v3.0/"
+    }
+}
+
+data class TracksResponse(
+    val tracks: List<TrackDto>
+)
+
+data class FeaturedPlaylistsResponse(
+    val playlists: List<PlaylistDto> = emptyList()
+)

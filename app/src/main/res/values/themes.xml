@@ -1,5 +1,25 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
 
-    <style name="Theme.MaxMediaPlayer" parent="android:Theme.Material.Light.NoActionBar" />
+    <!--<style name="Theme.MaxMediaPlayer" parent="android:Theme.Material.Light.NoActionBar" />-->
+    <style name="Theme.MaxMediaPlayer" parent="Theme.Material3.DayNight">
+        <!-- Primary brand color -->
+        <item name="colorPrimary">@color/purple_500</item>
+        <item name="colorOnPrimary">@color/white</item>
+
+        <!-- Control colors (for icons) -->
+        <item name="colorControlNormal">@color/black</item> <!-- Light mode -->
+        <item name="colorControlActivated">@color/purple_500</item>
+        <!-- Status Bar -->
+        <item name="android:statusBarColor">@android:color/transparent</item>
+        <item name="android:windowLightStatusBar">?attr/isLightTheme</item>
+
+        <!-- Navigation Bar -->
+        <item name="android:navigationBarColor">@android:color/transparent</item>
+        <item name="android:windowLightNavigationBar">?attr/isLightTheme</item>
+
+        <!-- For Android 10+ -->
+        <item name="android:enforceNavigationBarContrast">false</item>
+    </style>
 </resources>
+

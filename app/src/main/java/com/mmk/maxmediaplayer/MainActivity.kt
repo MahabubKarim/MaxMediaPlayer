@@ -3,45 +3,59 @@ package com.mmk.maxmediaplayer
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
-import androidx.activity.enableEdgeToEdge
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.padding
-import androidx.compose.material3.Scaffold
-import androidx.compose.material3.Text
+import androidx.compose.material3.MaterialTheme
+import android.graphics.Color
+import android.os.Build
+import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.runtime.Composable
-import androidx.compose.ui.Modifier
-import androidx.compose.ui.tooling.preview.Preview
-import com.mmk.maxmediaplayer.ui.theme.MaxMediaPlayerTheme
+import androidx.core.view.WindowCompat
+import androidx.core.view.WindowCompat.setDecorFitsSystemWindows
+import androidx.core.view.WindowInsetsControllerCompat
+import dagger.hilt.android.AndroidEntryPoint
+import com.mmk.maxmediaplayer.ui.navigation.NavGraph
 
+/**
+ * Main entry point of the application
+ */
+@AndroidEntryPoint
 class MainActivity : ComponentActivity() {
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+
+        // Edge-to-edge display
         enableEdgeToEdge()
+
         setContent {
-            MaxMediaPlayerTheme {
-                Scaffold(modifier = Modifier.fillMaxSize()) { innerPadding ->
-                    Greeting(
-                        name = "Android",
-                        modifier = Modifier.padding(innerPadding)
-                    )
-                }
+            MaterialTheme {
+                NavGraph()
             }
         }
     }
-}
 
-@Composable
-fun Greeting(name: String, modifier: Modifier = Modifier) {
-    Text(
-        text = "Hello $name!",
-        modifier = modifier
-    )
-}
+    //@Composable
+    private fun enableEdgeToEdge() {
+        // Allow content to draw behind system bars
+        setDecorFitsSystemWindows(window, false)
 
-@Preview(showBackground = true)
-@Composable
-fun GreetingPreview() {
-    MaxMediaPlayerTheme {
-        Greeting("Android")
+        // Configure system bar appearances
+        /*window.run {
+            // Set transparent background for system bars
+            statusBarColor = Color.TRANSPARENT.toArgb()
+            navigationBarColor = Color.TRANSPARENT.toArgb()
+
+            // Configure system bar contrast (for icon visibility)
+            WindowInsetsControllerCompat(this, decorView).apply {
+                // Set light status bar icons (for dark themes)
+                isAppearanceLightStatusBars = !isSystemInDarkTheme()
+                // Set light navigation bar icons (for dark themes)
+                isAppearanceLightNavigationBars = !isSystemInDarkTheme()
+            }
+
+            // For gesture navigation compatibility
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+                isNavigationBarContrastEnforced = false
+            }
+        }*/
     }
 }

@@ -1,7 +1,9 @@
 package com.mmk.maxmediaplayer.data.mapper
 
 import com.mmk.maxmediaplayer.data.local.entity.TrackEntity
-import com.mmk.maxmediaplayer.data.model.remote.TrackDto
+import com.mmk.maxmediaplayer.data.remote.dto.PlaylistDto
+import com.mmk.maxmediaplayer.data.remote.dto.TrackDto
+import com.mmk.maxmediaplayer.domain.model.Playlist
 import com.mmk.maxmediaplayer.domain.model.Track
 
 object TrackMapper {
@@ -40,4 +42,13 @@ object TrackMapper {
         audioUrl = entity.audioUrl,
         imageUrl = entity.imageUrl
     )
+
+    fun toDomain(dto: PlaylistDto): Playlist {
+        return Playlist(
+            id = dto.id,
+            title = dto.name,
+            coverArtUrl = dto.imageUrl,
+            trackCount = dto.trackCount
+        )
+    }
 }
