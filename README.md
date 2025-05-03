@@ -60,7 +60,7 @@ com.mmk.maxmediaplayer/
 ### Installation
 1. Clone the repository:
    ```bash
-   git clone https://github.com/yourusername/MaxMediaPlayer.git
+   git clone [https://github.com/yourusername/MaxMediaPlayer.git](https://github.com/MahabubKarim/MaxMediaPlayer.git)
 2. Obtain a Jamendo API key from Jamendo Developer Portal
 
 3. Add your API key to local.properties: JAMENDO_API_KEY="your_api_key_here"
