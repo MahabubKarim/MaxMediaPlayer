@@ -23,9 +23,9 @@ interface JamendoApi {
         @Query("limit") limit: Int = 10
     ): Response<FeaturedPlaylistsResponse>
 
-    companion object {
+    /*companion object {
         const val BASE_URL = "https://api.jamendo.com/v3.0/"
-    }
+    }*/
 }
 
 data class TracksResponse(
