@@ -55,8 +55,8 @@ com.mmk.maxmediaplayer/
 ## Getting Started 🚀
 
 ### Prerequisites
-- Android Studio Hedgehog (2023.1.1) or later
-- Android SDK 34
+- Android Studio Narwhal | 2025.1.1 Canary 8 or later
+- Android SDK 36
 - Jamendo API key (free tier available)
 
 ### Installation
