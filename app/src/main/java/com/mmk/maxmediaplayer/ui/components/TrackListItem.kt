@@ -70,6 +70,7 @@ fun TrackListItemPreview() {
         duration = "03:30",
         isPlaying = true,
         isFavorite = true,
+        audioUrl = "",
         imageUrl = ""
     )
     TrackListItem(track = track, onClick = { })

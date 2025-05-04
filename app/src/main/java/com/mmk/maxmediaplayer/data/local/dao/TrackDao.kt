@@ -8,7 +8,13 @@ import kotlinx.coroutines.flow.Flow
 interface TrackDao {
     // Basic operations
     @Insert(onConflict = OnConflictStrategy.REPLACE)
+    suspend fun insert(tracks: TrackEntity)
+
+    @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insertAll(tracks: List<TrackEntity>)
+
+    @Upsert
+    suspend fun upsertTrack(track: TrackEntity)
 
     @Query("SELECT * FROM tracks")
     fun getAllTracks(): Flow<List<TrackEntity>>
@@ -16,11 +22,9 @@ interface TrackDao {
     @Query("SELECT * FROM tracks")
     suspend fun getAllTracksOnce(): List<TrackEntity>
 
-    // Pagination support
     @Query("SELECT * FROM tracks LIMIT :limit OFFSET :offset")
     suspend fun getTracksPaginated(offset: Int, limit: Int): List<TrackEntity>
 
-    // Track navigation
     @Query("SELECT * FROM tracks WHERE id > :currentTrackId ORDER BY id ASC LIMIT 1")
     suspend fun getNextTrack(currentTrackId: String): TrackEntity?
 
@@ -31,7 +35,7 @@ interface TrackDao {
     @Query("UPDATE tracks SET lastPlayed = :timestamp WHERE id = :trackId")
     suspend fun updateLastPlayed(trackId: String, timestamp: Long)
 
-    @Query("SELECT * FROM tracks WHERE lastPlayed > 0 ORDER BY lastPlayed DESC")
+    @Query("SELECT * FROM tracks WHERE lastPlayed > 0 ORDER BY lastPlayed DESC LIMIT 10")
     suspend fun getRecentPlays(): List<TrackEntity>
 
     // Favorites
@@ -43,5 +47,5 @@ interface TrackDao {
 
     // Track lookup
     @Query("SELECT * FROM tracks WHERE id = :trackId")
-    fun getTrackById(trackId: String): TrackEntity?
+    suspend fun getTrackById(trackId: String): TrackEntity
 }

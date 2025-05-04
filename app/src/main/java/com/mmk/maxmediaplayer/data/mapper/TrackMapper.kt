@@ -31,7 +31,8 @@ object TrackMapper {
         artist = domain.artist,
         duration = domain.duration,
         audioUrl = domain.audioUrl,
-        imageUrl = domain.imageUrl
+        imageUrl = domain.imageUrl,
+        lastPlayed = domain.lastPlayed
     )
 
     fun toDomain(entity: TrackEntity) = Track(
@@ -40,7 +41,8 @@ object TrackMapper {
         artist = entity.artist,
         duration = entity.duration,
         audioUrl = entity.audioUrl,
-        imageUrl = entity.imageUrl
+        imageUrl = entity.imageUrl,
+        lastPlayed = entity.lastPlayed
     )
 
     fun toDomain(dto: PlaylistDto): Playlist {

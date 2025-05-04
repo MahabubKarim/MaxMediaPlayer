@@ -26,7 +26,7 @@ android {
             properties.load(localProperties.newReader())
         }
 
-        buildConfigField "String", "CLIENT_ID", "\"${properties.getProperty("client_id", "")}\""
+        buildConfigField "String", "CLIENT_ID", "${properties.getProperty("JAMENDO_API_KEY", "")}"
     }
 
     buildTypes {

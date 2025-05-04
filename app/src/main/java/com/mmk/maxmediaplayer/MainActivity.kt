@@ -11,14 +11,19 @@ import androidx.compose.runtime.Composable
 import androidx.core.view.WindowCompat
 import androidx.core.view.WindowCompat.setDecorFitsSystemWindows
 import androidx.core.view.WindowInsetsControllerCompat
-import dagger.hilt.android.AndroidEntryPoint
+import com.mmk.maxmediaplayer.domain.repository.MusicRepository
 import com.mmk.maxmediaplayer.ui.navigation.NavGraph
+import dagger.hilt.android.AndroidEntryPoint
+import javax.inject.Inject
 
 /**
  * Main entry point of the application
  */
 @AndroidEntryPoint
 class MainActivity : ComponentActivity() {
+
+    @Inject
+    lateinit var repository: MusicRepository
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -28,34 +33,33 @@ class MainActivity : ComponentActivity() {
 
         setContent {
             MaterialTheme {
-                NavGraph()
+                NavGraph(repository = repository)
             }
         }
     }
 
-    //@Composable
     private fun enableEdgeToEdge() {
         // Allow content to draw behind system bars
         setDecorFitsSystemWindows(window, false)
 
         // Configure system bar appearances
-        /*window.run {
+        window.run {
             // Set transparent background for system bars
-            statusBarColor = Color.TRANSPARENT.toArgb()
-            navigationBarColor = Color.TRANSPARENT.toArgb()
+            statusBarColor = Color.TRANSPARENT
+            navigationBarColor = Color.TRANSPARENT
 
             // Configure system bar contrast (for icon visibility)
-            WindowInsetsControllerCompat(this, decorView).apply {
+            /*WindowInsetsControllerCompat(this, decorView).apply {
                 // Set light status bar icons (for dark themes)
                 isAppearanceLightStatusBars = !isSystemInDarkTheme()
                 // Set light navigation bar icons (for dark themes)
                 isAppearanceLightNavigationBars = !isSystemInDarkTheme()
-            }
+            }*/
 
             // For gesture navigation compatibility
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
                 isNavigationBarContrastEnforced = false
             }
-        }*/
+        }
     }
 }

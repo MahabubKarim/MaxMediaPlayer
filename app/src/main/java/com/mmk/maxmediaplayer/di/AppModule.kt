@@ -10,10 +10,18 @@ import androidx.media3.common.C
 import androidx.media3.common.util.UnstableApi
 import androidx.media3.exoplayer.ExoPlayer
 import androidx.media3.session.MediaSession
+import androidx.room.Room
+import coil.ImageLoader
 import com.google.gson.Gson
 import com.google.gson.GsonBuilder
 import com.mmk.maxmediaplayer.MainActivity
+import com.mmk.maxmediaplayer.data.local.AppDatabase
+import com.mmk.maxmediaplayer.data.local.AppDatabase.Companion.MIGRATION_1_2
+import com.mmk.maxmediaplayer.data.local.dao.TrackDao
 import com.mmk.maxmediaplayer.data.remote.api.JamendoApi
+import com.mmk.maxmediaplayer.data.repository.MusicRepositoryImpl
+import com.mmk.maxmediaplayer.domain.repository.MusicRepository
+import com.mmk.maxmediaplayer.service.NotificationAdapter
 import com.mmk.maxmediaplayer.service.PlaybackService
 import dagger.Module
 import dagger.Provides
@@ -24,6 +32,7 @@ import okhttp3.OkHttpClient
 import okhttp3.logging.HttpLoggingInterceptor
 import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
+import java.util.concurrent.TimeUnit
 import javax.inject.Singleton
 
 @Module
@@ -39,13 +48,18 @@ object AppModule {
     @Provides
     @Singleton
     fun provideOkHttpClient(): OkHttpClient {
-        return OkHttpClient.Builder().apply {
-            if (BuildConfig.DEBUG) {
-                addInterceptor(HttpLoggingInterceptor().apply {
-                    level = HttpLoggingInterceptor.Level.BASIC
-                })
+        return OkHttpClient.Builder()
+            .connectTimeout(120, TimeUnit.SECONDS) // Connection timeout
+            .readTimeout(120, TimeUnit.SECONDS)    // Read timeout
+            .writeTimeout(120, TimeUnit.SECONDS)   // Write timeout
+            .apply {
+                if (BuildConfig.DEBUG) {
+                    addInterceptor(HttpLoggingInterceptor().apply {
+                        level = HttpLoggingInterceptor.Level.BASIC
+                    })
+                }
             }
-        }.build()
+            .build()
     }
 
     @Provides
@@ -119,5 +133,35 @@ object AppModule {
             this.player = player
             this.mediaSession = mediaSession
         }
+    }
+
+    @Provides
+    @Singleton
+    fun provideMusicRepository(
+        api: JamendoApi,
+        player: ExoPlayer,
+        trackDao: TrackDao
+    ): MusicRepository {
+        return MusicRepositoryImpl(api, player, trackDao)
+    }
+
+    @Provides
+    @Singleton
+    fun provideImageLoader(
+        @ApplicationContext context: Context
+    ): ImageLoader {
+        return ImageLoader.Builder(context)
+            .crossfade(true)
+            .build()
+    }
+
+    @OptIn(UnstableApi::class)
+    @Provides
+    @Singleton
+    fun provideNotificationAdapter(
+        @ApplicationContext context: Context,
+        imageLoader: ImageLoader
+    ): NotificationAdapter {
+        return NotificationAdapter(context, imageLoader)
     }
 }

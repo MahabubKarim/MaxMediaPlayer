@@ -4,7 +4,7 @@ import android.app.Notification
 import android.app.NotificationChannel
 import android.app.NotificationManager
 import android.content.Context
-import androidx.annotation.OptIn
+import android.net.Uri
 import androidx.core.app.NotificationCompat
 import androidx.media3.common.MediaItem
 import androidx.media3.common.MediaMetadata
@@ -21,6 +21,7 @@ import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import javax.inject.Inject
+import androidx.core.net.toUri
 
 @UnstableApi
 @AndroidEntryPoint
@@ -28,55 +29,64 @@ class PlaybackService : MediaSessionService() {
 
     @Inject lateinit var player: ExoPlayer
     @Inject lateinit var notificationAdapter: NotificationAdapter
-    var mediaSession: MediaSession? = null
+
+    lateinit var mediaSession: MediaSession
     private var notificationManager: PlayerNotificationManager? = null
 
-    // State flows
     private val _currentTrack = MutableStateFlow<Track?>(null)
-    val currentTrack: StateFlow<Track?> = _currentTrack
+    val currentTrack: MutableStateFlow<Track?> get() = _currentTrack
 
     private val _isPlaying = MutableStateFlow(false)
-    val isPlaying: StateFlow<Boolean> = _isPlaying
+    val isPlaying: StateFlow<Boolean> get() = _isPlaying
 
     private val _playbackPosition = MutableStateFlow(0L)
-    val playbackPosition: StateFlow<Long> = _playbackPosition
+    val playbackPosition: StateFlow<Long> get() = _playbackPosition
 
     private val _playbackDuration = MutableStateFlow(0L)
-    val playbackDuration: StateFlow<Long> = _playbackDuration
+    val playbackDuration: StateFlow<Long> get() = _playbackDuration
 
     private val _bufferedPosition = MutableStateFlow(0L)
-    val bufferedPosition: StateFlow<Long> = _bufferedPosition
+    val bufferedPosition: StateFlow<Long> get() = _bufferedPosition
 
-    private val _playbackState = MutableStateFlow<PlaybackState>(PlaybackState.Idle)
-    val playbackState: StateFlow<PlaybackState> = _playbackState
+    private val _playbackState = MutableStateFlow<PlaybackState>(PlaybackState.Playing)
+    val playbackState: StateFlow<PlaybackState> get() = _playbackState
 
     override fun onCreate() {
         super.onCreate()
-        initializeMediaSession()
-        initializeNotificationManager()
-        createNotificationChannel()
+        mediaSession = MediaSession.Builder(this, player).build()
+        initNotification()
         setupPlayerListeners()
+        createNotificationChannel()
+    }
+
+    private fun initNotification() {
+        notificationManager = PlayerNotificationManager.Builder(
+            this, NOTIFICATION_ID, NOTIFICATION_CHANNEL_ID
+        ).apply {
+            setMediaDescriptionAdapter(notificationAdapter)
+            setSmallIconResourceId(R.drawable.ic_music_note)
+            setNotificationListener(object : PlayerNotificationManager.NotificationListener {
+                override fun onNotificationPosted(id: Int, notification: Notification, ongoing: Boolean) {
+                    startForeground(id, notification)
+                }
+            })
+        }.build().apply {
+            setPlayer(player)
+            setPriority(NotificationCompat.PRIORITY_LOW)
+        }
     }
 
     private fun setupPlayerListeners() {
         player.addListener(object : Player.Listener {
-            override fun onPlaybackStateChanged(playbackState: Int) {
+            override fun onPlaybackStateChanged(state: Int) {
                 _isPlaying.value = player.isPlaying
-                _playbackState.value = when (playbackState) {
-                    Player.STATE_IDLE -> PlaybackState.Idle
+                _playbackState.value = when (state) {
+                    // Player.STATE_IDLE -> PlaybackState.Idle
                     Player.STATE_BUFFERING -> PlaybackState.Loading
                     Player.STATE_READY -> PlaybackState.Ready
                     Player.STATE_ENDED -> PlaybackState.Ended
-                    else -> PlaybackState.Idle
+                    else -> PlaybackState.Playing
                 }
-            }
-
-            override fun onPositionDiscontinuity(
-                oldPosition: Player.PositionInfo,
-                newPosition: Player.PositionInfo,
-                reason: Int
-            ) {
-                _playbackPosition.value = player.currentPosition
             }
 
             override fun onEvents(player: Player, events: Player.Events) {
@@ -94,22 +104,14 @@ class PlaybackService : MediaSessionService() {
         _currentTrack.value = track
     }
 
-    fun pause() {
-        player.pause()
-    }
-
-    fun resume() {
-        player.play()
-    }
-
+    fun pause() = player.pause()
+    fun resume() = player.play()
     fun stop() {
         player.stop()
         _currentTrack.value = null
     }
 
-    fun seekTo(position: Long) {
-        player.seekTo(position)
-    }
+    fun seekTo(position: Long) = player.seekTo(position)
 
     fun updateCurrentTrack(track: Track) {
         _currentTrack.value = track
@@ -122,72 +124,30 @@ class PlaybackService : MediaSessionService() {
                 MediaMetadata.Builder()
                     .setTitle(track.title)
                     .setArtist(track.artist)
-                    //.setArtworkUri(track.albumArtUrl?.toUri())
+                    .setArtworkUri(track.imageUrl.toUri())
                     .build()
             )
             .build()
     }
 
-    /*override fun onCreate() {
-        super.onCreate()
-        initializeMediaSession()
-        initializeNotificationManager()
-        createNotificationChannel()
-    }*/
-
-    private fun initializeMediaSession() {
-        mediaSession = MediaSession.Builder(this, player).build()
-    }
-
-    @OptIn(UnstableApi::class)
-    private fun initializeNotificationManager() {
-        notificationManager = PlayerNotificationManager.Builder(
-            this,
-            NOTIFICATION_ID,
-            NOTIFICATION_CHANNEL_ID
-        ).apply {
-            setMediaDescriptionAdapter(notificationAdapter)
-            setSmallIconResourceId(R.drawable.ic_music_note)
-            setNotificationListener(NotificationListener())
-        }.build().apply {
-            setPlayer(player)
-            setPriority(NotificationCompat.PRIORITY_LOW)
-        }
-    }
-
     private fun createNotificationChannel() {
         val channel = NotificationChannel(
             NOTIFICATION_CHANNEL_ID,
-            "Playback",
+            "Playback Controls",
             NotificationManager.IMPORTANCE_LOW
-        ).apply { description = "Audio playback controls" }
-
-        (getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager)
-            .createNotificationChannel(channel)
+        )
+        getSystemService(NotificationManager::class.java).createNotificationChannel(channel)
     }
 
-    override fun onGetSession(controllerInfo: MediaSession.ControllerInfo): MediaSession? {
+    override fun onGetSession(controllerInfo: MediaSession.ControllerInfo): MediaSession {
         return mediaSession
     }
 
-    @OptIn(UnstableApi::class)
     override fun onDestroy() {
         notificationManager?.setPlayer(null)
-        mediaSession?.release()
-        mediaSession = null
+        mediaSession.release()
         player.release()
         super.onDestroy()
-    }
-
-    @UnstableApi
-    private inner class NotificationListener : PlayerNotificationManager.NotificationListener {
-        override fun onNotificationPosted(
-            notificationId: Int,
-            notification: Notification,
-            ongoing: Boolean
-        ) {
-            startForeground(notificationId, notification)
-        }
     }
 
     companion object {

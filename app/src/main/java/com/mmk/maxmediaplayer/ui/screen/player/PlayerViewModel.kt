@@ -7,128 +7,159 @@ import androidx.media3.common.util.UnstableApi
 import com.mmk.maxmediaplayer.domain.model.Track
 import com.mmk.maxmediaplayer.domain.repository.MusicRepository
 import com.mmk.maxmediaplayer.service.PlaybackService
-import com.mmk.maxmediaplayer.ui.model.TrackItem
 import dagger.hilt.android.lifecycle.HiltViewModel
-import javax.inject.Inject
-import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
+import javax.inject.Inject
+
+open class PlaybackState {
+    object Loading : PlaybackState()
+    object Ready : PlaybackState()
+    object Playing : PlaybackState()
+    object Paused : PlaybackState()
+    object Ended : PlaybackState()
+    data class Error(val message: String) : PlaybackState()
+}
+
 
 @OptIn(UnstableApi::class)
 @HiltViewModel
-class PlayerViewModel @OptIn(UnstableApi::class)
-@Inject constructor(
-    private val repository: MusicRepository,
-    private val playbackService: PlaybackService
+class PlayerViewModel @Inject constructor(
+    private val playbackService: PlaybackService,
+    private val repository: MusicRepository
 ) : ViewModel() {
 
-    // Existing state flows
-    val currentTrack: StateFlow<Track?> = playbackService.currentTrack
-    val isPlaying: StateFlow<Boolean> = playbackService.isPlaying
-    val playbackPosition: StateFlow<Long> = playbackService.playbackPosition
-    val playbackDuration: StateFlow<Long> = playbackService.playbackDuration
-    val bufferedPosition: StateFlow<Long> = playbackService.bufferedPosition
-    val playbackState: StateFlow<PlaybackState> = playbackService.playbackState
+    // Expose these states to the UI
+    /*private val currentTrack = MutableStateFlow<Track?>(null)
+    val currentTrack: StateFlow<Track?> = currentTrack.asStateFlow()*/
+    var currentTrack: MutableStateFlow<Track?> = playbackService.currentTrack
 
-    // Missing methods that correspond to PlaybackService functionality:
-    fun resume() {
+    private val _isPlaying = MutableStateFlow(false)
+    val isPlaying: StateFlow<Boolean> = _isPlaying.asStateFlow()
+
+    private val _playbackPosition = MutableStateFlow(0L)
+    val playbackPosition: StateFlow<Long> = _playbackPosition.asStateFlow()
+
+    private val _playbackDuration = MutableStateFlow(0L)
+    val playbackDuration: StateFlow<Long> = _playbackDuration.asStateFlow()
+
+    private val _playbackState = MutableStateFlow<PlaybackState>(PlaybackState.Playing)
+    val playbackState: StateFlow<PlaybackState> = _playbackState.asStateFlow()
+
+    init {
+        observePlaybackState()
+    }
+
+    private val _playbackServiceState = MutableStateFlow(PlaybackServiceState())
+    val playbackServiceState: StateFlow<PlaybackServiceState> = _playbackServiceState.asStateFlow()
+
+    private fun observePlaybackState() {
         viewModelScope.launch {
-            playbackService.resume()
-        }
-    }
-
-    fun pause() {
-        viewModelScope.launch {
-            playbackService.pause()
-        }
-    }
-
-    fun stop() {
-        viewModelScope.launch {
-            playbackService.stop()
-        }
-    }
-
-    fun updateCurrentTrack(track: Track) {
-        viewModelScope.launch {
-            playbackService.updateCurrentTrack(track)
-        }
-    }
-
-    // Existing methods remain unchanged...
-
-    fun playTrack(track: Track) {
-        viewModelScope.launch {
-            playbackService.play(track)
-            repository.addToRecentPlays(track)
-        }
-    }
-
-    fun togglePlayback() {
-        viewModelScope.launch {
-            if (isPlaying.value) {
-                playbackService.pause()
-            } else {
-                currentTrack.value?.let { playbackService.resume() }
-                    ?: run { currentTrack.value?.let { playTrack(it) } }
-            }
-        }
-    }
-
-    fun skipNext() = viewModelScope.launch {
-        currentTrack.value?.let { current ->
-            repository.getNextTrack(current.id)?.let { nextTrack ->
-                playTrack(nextTrack)
-            } ?: run { playbackService.stop() }
-        }
-    }
-
-    fun skipPrevious() = viewModelScope.launch {
-        currentTrack.value?.let { current ->
-            repository.getPreviousTrack(current.id)?.let { prevTrack ->
-                playTrack(prevTrack)
-            } ?: run { seekTo(0) }
-        }
-    }
-
-    fun seekTo(position: Long) {
-        viewModelScope.launch {
-            playbackService.seekTo(position)
-        }
-    }
-
-    fun toggleFavorite() {
-        viewModelScope.launch {
-            currentTrack.value?.let { track ->
-                repository.toggleFavorite(track.id)
-                // Refresh current track to update favorite status
-                currentTrack.value?.let { refreshed ->
-                    playbackService.updateCurrentTrack(refreshed.copy())
+            combine(
+                playbackService.currentTrack,
+                playbackService.isPlaying,
+                playbackService.playbackPosition,
+                playbackService.playbackDuration
+            ) { track, playing, pos, dur ->
+                PlaybackServiceState(track, playing, pos, dur)
+            }.collect {
+                if (_playbackServiceState != null) {
+                    _playbackServiceState.value = it
                 }
             }
         }
     }
 
-    fun TrackItem.toTrack(): Track = Track(
-        id = id,
-        title = title,
-        artist = artist,
-        duration = duration.toMilliseconds(),
-        audioUrl = repository.getTrackUrl(id),
-        imageUrl = imageUrl
-    )
+    fun togglePlayback() {
+        viewModelScope.launch {
+            when (playbackState.value) {
+                /*is PlaybackState.Idle -> {
+                    repository.getTracksOnce().firstOrNull()?.let {
+                        playTrack(it)
+                    }
+                }*/
 
-    private fun String.toMilliseconds(): Long {
-        val parts = split(":")
-        return if (parts.size == 2) {
-            (parts[0].toLong() * 60 + parts[1].toLong()) * 1000
-        } else 0L
+                is PlaybackState.Playing -> {
+                    currentTrack.value?.let {
+                        playbackService.pause()
+                    } ?: run {
+                        repository.getTracksOnce().firstOrNull()?.let { firstTrack ->
+                            playTrack(firstTrack)
+                        }
+                    }
+                    _playbackState.value = PlaybackState.Paused
+                }
+
+                is PlaybackState.Paused, is PlaybackState.Ready -> {
+                    currentTrack.value?.let {
+                        playbackService.resume()
+                    } ?: run {
+                        repository.getTracksOnce().firstOrNull()?.let { firstTrack ->
+                            playTrack(firstTrack)
+                        }
+                    }
+                    _playbackState.value = PlaybackState.Playing
+                }
+
+                is PlaybackState.Ended -> {
+                    currentTrack.value?.let {
+                        playbackService.resume()
+                    } ?: run {
+                        repository.getTracksOnce().firstOrNull()?.let { firstTrack ->
+                            playTrack(firstTrack)
+                        }
+                    }
+                    // Maybe restart the track or go to the next one
+                    playbackService.seekTo(0)
+                    _playbackState.value = PlaybackState.Playing
+                }
+
+                is PlaybackState.Error -> {
+                    // Maybe reset or show UI feedback
+                }
+            }
+        }
+    }
+
+    fun playTrack(track: Track) {
+        viewModelScope.launch {
+            currentTrack.value = track
+            playbackService.play(track)
+        }
+    }
+
+    fun seekTo(positionMs: Long) {
+        viewModelScope.launch {
+            playbackService.seekTo(positionMs)
+        }
+    }
+
+    fun skipNext() {
+        viewModelScope.launch {
+            val allTracks = repository.getTracksOnce()
+            val current = currentTrack.value
+            val index = allTracks.indexOfFirst { it.id == current?.id }
+            if (index != -1 && index < allTracks.lastIndex) {
+                playTrack(allTracks[index + 1])
+            }
+        }
+    }
+
+    fun skipPrevious() {
+        viewModelScope.launch {
+            val allTracks = repository.getTracksOnce()
+            val current = currentTrack.value
+            val index = allTracks.indexOfFirst { it.id == current?.id }
+            if (index > 0) {
+                playTrack(allTracks[index - 1])
+            }
+        }
     }
 }
 
-sealed class PlaybackState {
-    object Idle : PlaybackState()
-    object Loading : PlaybackState()
-    object Ready : PlaybackState()
-    object Ended : PlaybackState()
-    data class Error(val message: String) : PlaybackState()
-}
+data class PlaybackServiceState(
+    val currentTrack: Track? = null,
+    val isPlaying: Boolean = false,
+    val position: Long = 0L,
+    val duration: Long = 0L
+)

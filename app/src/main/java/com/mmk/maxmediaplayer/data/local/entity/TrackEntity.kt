@@ -11,8 +11,8 @@ data class TrackEntity(
     val duration: Long,
     val audioUrl: String,
     val imageUrl: String,
-    val lastPlayed: Long = 0,
-    val isFavorite: Boolean = false
+    val lastPlayed: Long = System.currentTimeMillis(),
+    val isFavorite: Boolean = false,
 )
 /*fun toEntity(domain: Track) = TrackEntity(
     id = domain.id,

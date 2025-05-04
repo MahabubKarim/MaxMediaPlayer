@@ -1,12 +1,16 @@
 package com.mmk.maxmediaplayer.ui.screen.home
 
+import android.util.Log
+import androidx.annotation.OptIn
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import androidx.media3.common.util.UnstableApi
 import com.mmk.maxmediaplayer.domain.model.Playlist
 import com.mmk.maxmediaplayer.domain.model.Track
 import com.mmk.maxmediaplayer.domain.repository.MusicRepository
 import com.mmk.maxmediaplayer.service.PlaybackService
 import com.mmk.maxmediaplayer.ui.model.TrackItem
+import com.mmk.maxmediaplayer.ui.screen.player.PlayerViewModel
 import dagger.hilt.android.lifecycle.HiltViewModel
 import javax.inject.Inject
 import kotlinx.coroutines.flow.StateFlow
@@ -14,7 +18,8 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.launch
 
 @HiltViewModel
-class HomeViewModel @Inject constructor(
+class HomeViewModel @OptIn(UnstableApi::class)
+@Inject constructor(
     private val repository: MusicRepository,
     private val playbackService: PlaybackService
 ) : ViewModel() {
@@ -27,6 +32,7 @@ class HomeViewModel @Inject constructor(
     private var hasMore = true
 
     init {
+        Log.d("HomeViewModel", "Initializing with state: ${_uiState.value}")
         loadInitialData()
         setupPlaybackObserver()
     }
@@ -46,7 +52,9 @@ class HomeViewModel @Inject constructor(
                     featuredPlaylists = featured,
                     recentPlays = recent,
                     hasMore = hasMore
-                )
+                ).also {
+                    Log.d("HomeViewModel", "New state: Success with ${tracks.size} tracks")
+                }
             } catch (e: Exception) {
                 _uiState.value = HomeUiState.Error(e.message ?: "Failed to load data")
             }
@@ -125,6 +133,19 @@ class HomeViewModel @Inject constructor(
     private fun List<TrackItem>.updatePlayingState(currentTrack: Track?): List<TrackItem> {
         return map { item ->
             item.copy(isPlaying = currentTrack?.id == item.id)
+        }
+    }
+
+    fun playTrackById(
+        trackId: String,
+        playerViewModel: PlayerViewModel,
+        onSuccess: () -> Unit
+    ) {
+        viewModelScope.launch {
+            repository.getTrackById(trackId)?.let { track ->
+                playerViewModel.playTrack(track)
+                onSuccess()
+            }
         }
     }
 }

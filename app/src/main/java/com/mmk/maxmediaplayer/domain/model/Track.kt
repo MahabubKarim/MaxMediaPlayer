@@ -6,5 +6,7 @@ data class Track(
     val artist: String,
     val duration: Long,
     val audioUrl: String,
-    val imageUrl: String
+    val imageUrl: String,
+    val lastPlayed: Long = 0,
+    val isFavorite: Boolean = false
 )

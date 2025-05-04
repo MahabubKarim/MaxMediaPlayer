@@ -1,5 +1,6 @@
 package com.mmk.maxmediaplayer.data.remote.api
 
+import com.google.gson.annotations.SerializedName
 import com.mmk.maxmediaplayer.data.remote.dto.PlaylistDto
 import com.mmk.maxmediaplayer.data.remote.dto.TrackDto
 import retrofit2.Response
@@ -11,7 +12,7 @@ interface JamendoApi {
     suspend fun getTracks(
         @Query("client_id") clientId: String,
         @Query("format") format: String = "jsonpretty",
-        @Query("limit") limit: Int = 50,
+        @Query("limit") limit: Int = 10,
         @Query("offset") offset: Int = 0
     ): Response<TracksResponse>
 
@@ -29,9 +30,9 @@ interface JamendoApi {
 }
 
 data class TracksResponse(
-    val tracks: List<TrackDto>
+    @SerializedName("results")  val tracks: List<TrackDto>
 )
 
 data class FeaturedPlaylistsResponse(
-    val playlists: List<PlaylistDto> = emptyList()
+    @SerializedName("results") val playlists: List<PlaylistDto> = emptyList()
 )
