@@ -42,6 +42,17 @@ class PlayerViewModel @Inject constructor(
     val playbackState: StateFlow<PlaybackState> = _playbackState.asStateFlow()
 
     init {
+        viewModelScope.launch {
+            playbackService.currentTrack.collect { track ->
+                currentTrack.value = track
+            }
+        }
+        viewModelScope.launch {
+            playbackService.isPlaying.collect { playing ->
+                _playbackState.value =
+                    if (playing) PlaybackState.Playing else PlaybackState.Paused
+            }
+        }
         observePlaybackState()
     }
 
@@ -75,12 +86,6 @@ class PlayerViewModel @Inject constructor(
     fun togglePlayback() {
         viewModelScope.launch {
             when (playbackState.value) {
-                /*is PlaybackState.Idle -> {
-                    repository.getTracksOnce().firstOrNull()?.let {
-                        playTrack(it)
-                    }
-                }*/
-
                 is PlaybackState.Playing -> {
                     currentTrack.value?.let {
                         playbackService.pause()
@@ -159,6 +164,19 @@ class PlayerViewModel @Inject constructor(
             val index = allTracks.indexOfFirst { it.id == current?.id }
             if (index > 0) {
                 playTrack(allTracks[index - 1])
+            }
+        }
+    }
+
+    fun playPlaylist(tracks: List<Track>, startIndex: Int = 0) {
+        viewModelScope.launch {
+            if (tracks.isNotEmpty() && startIndex in tracks.indices) {
+                val selectedTrack = tracks[startIndex]
+                currentTrack.value = selectedTrack
+                playbackService.playPlaylist(tracks, startIndex)
+                _playbackState.value = PlaybackState.Playing
+            } else {
+                _playbackState.value = PlaybackState.Error("Invalid playlist or start index.")
             }
         }
     }

@@ -125,6 +125,8 @@ class PlaybackService : MediaSessionService() {
         player.prepare()
         player.play()
         _currentTrack.value = track
+        _currentTrack.value = null
+        _isPlaying.value = false
         updatePlaybackServiceState()
     }
 

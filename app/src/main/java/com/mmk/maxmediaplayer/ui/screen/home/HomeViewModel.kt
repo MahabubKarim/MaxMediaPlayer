@@ -1,6 +1,5 @@
 package com.mmk.maxmediaplayer.ui.screen.home
 
-import android.util.Log
 import androidx.annotation.OptIn
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
@@ -34,6 +33,15 @@ class HomeViewModel @OptIn(UnstableApi::class)
     init {
         loadInitialData()
         setupPlaybackObserver()
+        setupPlayPauseObserver()
+    }
+
+    private fun setupPlayPauseObserver() {
+        viewModelScope.launch {
+            playbackService.isPlaying.collect { isPlaying ->
+                updateAllTrackItems(isPlaying)
+            }
+        }
     }
 
     private fun loadInitialData() {
@@ -113,9 +121,15 @@ class HomeViewModel @OptIn(UnstableApi::class)
         }
     }
 
-    private fun toTrackItem(track: Track): TrackItem = TrackItem.fromTrack(
-        track = track,
-        isCurrentlyPlaying = playbackService.currentTrack.value?.id == track.id
+    private fun toTrackItem(track: Track): TrackItem = TrackItem(
+        id = track.id,
+        title = track.title,
+        artist = track.artist,
+        duration = track.duration,
+        audioUrl = track.audioUrl,
+        isPlaying = false,
+        isFavorite = false,
+        imageUrl = "",
     )
 
     private fun toPlaylistItem(playlist: Playlist): PlaylistItem {
@@ -147,6 +161,41 @@ class HomeViewModel @OptIn(UnstableApi::class)
                 playerViewModel.playTrack(track)
                 onSuccess()
             }
+        }
+    }
+
+    fun shuffleAll(
+        playerViewModel: PlayerViewModel,
+        onPlayStart: (Track) -> Unit,
+        onSuccess: () -> Unit
+    ) {
+        viewModelScope.launch {
+            // Get the full list of tracks
+            val allTracks = repository.getTracksOnce()
+            if (allTracks.isNotEmpty()) {
+                // Shuffle and play as a playlist
+                val shuffled = allTracks.shuffled()
+                onPlayStart(shuffled.first())
+                playerViewModel.playPlaylist(shuffled, 0)
+                onSuccess()
+            }
+        }
+    }
+
+    /**
+     * Whenever playback starts or stops, flip the `isPlaying` flag
+     * on every TrackItem in both lists, based on the currentTrack.
+     */
+    private fun updateAllTrackItems(isPlaying: Boolean) {
+        val currentState = _uiState.value
+        if (currentState is HomeUiState.Success) {
+            // if stopped, no track is playing
+            val playingId = if (isPlaying) playbackService.currentTrack.value?.id else null
+
+            _uiState.value = currentState.copy(
+                tracks = currentState.tracks.map { it.copy(isPlaying = it.id == playingId) },
+                recentPlays = currentState.recentPlays.map { it.copy(isPlaying = it.id == playingId) }
+            )
         }
     }
 }

@@ -36,6 +36,9 @@ fun NavGraph(repository: MusicRepository) {
             val playerViewModel: PlayerViewModel = hiltViewModel()
 
             HomeScreen(
+                navController = navController,
+                viewModel = homeViewModel,
+                playerViewModel = playerViewModel,
                 onTrackClick = { trackId ->
                     homeViewModel.playTrackById(
                         trackId = trackId,
@@ -45,7 +48,7 @@ fun NavGraph(repository: MusicRepository) {
                             ContextCompat.startForegroundService(context, intent)
                         },
                         onSuccess = {
-                            navController.navigate("player")
+                            // navController.navigate("player")
                         }
                     )
                 }

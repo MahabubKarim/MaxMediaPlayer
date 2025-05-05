@@ -1,13 +1,12 @@
 package com.mmk.maxmediaplayer.ui.model
 
 import com.mmk.maxmediaplayer.domain.model.Track
-import com.mmk.maxmediaplayer.domain.repository.MusicRepository
 
 data class TrackItem(
     val id: String,
     val title: String,
     val artist: String,
-    val duration: String, // Formatted as "MM:SS"
+    val duration: Long,
     val audioUrl: String,
     val isPlaying: Boolean = false,
     val isFavorite: Boolean = false,
@@ -17,14 +16,14 @@ data class TrackItem(
     companion object {
         fun fromTrack(track: Track?, isCurrentlyPlaying: Boolean = false): TrackItem {
             return TrackItem(
-                id = track?.id ?: "",
-                title = track?.title ?: "",
-                artist = track?.artist ?: "",
-                duration = track?.duration?.toFormattedTime() ?: "",
-                audioUrl = track?.audioUrl ?: "",
+                id = track!!.id,
+                title = track.title,
+                artist = track.artist,
+                duration = track.duration,
+                audioUrl = track.audioUrl,
                 isPlaying = isCurrentlyPlaying,
                 isFavorite = false,
-                imageUrl = ""
+                imageUrl = "",
             )
         }
     }
