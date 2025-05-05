@@ -7,6 +7,7 @@ import androidx.media3.common.util.UnstableApi
 import com.mmk.maxmediaplayer.domain.model.Track
 import com.mmk.maxmediaplayer.domain.repository.MusicRepository
 import com.mmk.maxmediaplayer.service.PlaybackService
+import com.mmk.maxmediaplayer.ui.screen.home.HomeUiState
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
@@ -21,7 +22,6 @@ open class PlaybackState {
     data class Error(val message: String) : PlaybackState()
 }
 
-
 @OptIn(UnstableApi::class)
 @HiltViewModel
 class PlayerViewModel @Inject constructor(
@@ -30,12 +30,7 @@ class PlayerViewModel @Inject constructor(
 ) : ViewModel() {
 
     // Expose these states to the UI
-    /*private val currentTrack = MutableStateFlow<Track?>(null)
-    val currentTrack: StateFlow<Track?> = currentTrack.asStateFlow()*/
     var currentTrack: MutableStateFlow<Track?> = playbackService.currentTrack
-
-    private val _isPlaying = MutableStateFlow(false)
-    val isPlaying: StateFlow<Boolean> = _isPlaying.asStateFlow()
 
     private val _playbackPosition = MutableStateFlow(0L)
     val playbackPosition: StateFlow<Long> = _playbackPosition.asStateFlow()
@@ -50,7 +45,14 @@ class PlayerViewModel @Inject constructor(
         observePlaybackState()
     }
 
-    private val _playbackServiceState = MutableStateFlow(PlaybackServiceState())
+    private val _playbackServiceState = MutableStateFlow(PlaybackServiceState(
+        currentTrack = null,
+        isPlaying = false,
+        playbackPosition = 0,
+        playbackDuration = 0,
+        bufferedPosition = 0,
+        playbackState = PlaybackState.Playing
+    ))
     val playbackServiceState: StateFlow<PlaybackServiceState> = _playbackServiceState.asStateFlow()
 
     private fun observePlaybackState() {
@@ -123,8 +125,13 @@ class PlayerViewModel @Inject constructor(
 
     fun playTrack(track: Track) {
         viewModelScope.launch {
-            currentTrack.value = track
-            playbackService.play(track)
+            val currentTracks = repository.getTracksOnce()
+            val startIndex = currentTracks.indexOfFirst { it.id == track.id }
+
+            if (startIndex != -1) {
+                currentTrack.value = track
+                playbackService.playPlaylist(currentTracks, startIndex)
+            }
         }
     }
 
@@ -156,10 +163,3 @@ class PlayerViewModel @Inject constructor(
         }
     }
 }
-
-data class PlaybackServiceState(
-    val currentTrack: Track? = null,
-    val isPlaying: Boolean = false,
-    val position: Long = 0L,
-    val duration: Long = 0L
-)

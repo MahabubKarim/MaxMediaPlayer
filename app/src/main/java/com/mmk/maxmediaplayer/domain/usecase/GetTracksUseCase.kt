@@ -1,3 +1,4 @@
+/*
 package com.mmk.maxmediaplayer.domain.usecase
 
 import androidx.compose.ui.Modifier
@@ -9,16 +10,19 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flow
 import javax.inject.Inject
 
+*/
 /**
  * Business logic for retrieving tracks with:
  * - Network error handling
  * - Caching strategy
  * - Resource state management
- */
+ *//*
+
 class GetTracksUseCase @Inject constructor(
     private val repository: MusicRepository
 ) {
-    /**
+    */
+/**
      * In Kotlin, operator fun invoke() allows instances of a class to be called like functions.
      * When the invoke operator is defined for a class, you can call an instance of that class using
      * parentheses, similar to calling a regular function. This feature enhances code readability
@@ -37,7 +41,8 @@ class GetTracksUseCase @Inject constructor(
      * In this example, hello is an instance of the Greeter class. Because the invoke operator is
      * defined, hello("World") is equivalent to hello.invoke("World"). This makes the code more
      * expressive and easier to read.
-     */
+     *//*
+
     operator fun invoke(
         forceRefresh: Boolean = false
     ): Flow<Resource<List<Track>>> = flow {
@@ -60,4 +65,4 @@ class GetTracksUseCase @Inject constructor(
             ))
         }
     }
-}
+}*/

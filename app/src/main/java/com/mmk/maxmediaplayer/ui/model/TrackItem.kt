@@ -15,13 +15,13 @@ data class TrackItem(
     val imageUrl: String
 ) {
     companion object {
-        fun fromTrack(track: Track, isCurrentlyPlaying: Boolean = false): TrackItem {
+        fun fromTrack(track: Track?, isCurrentlyPlaying: Boolean = false): TrackItem {
             return TrackItem(
-                id = track.id,
-                title = track.title,
-                artist = track.artist,
-                duration = track.duration.toFormattedTime(),
-                audioUrl = track.audioUrl,
+                id = track?.id ?: "",
+                title = track?.title ?: "",
+                artist = track?.artist ?: "",
+                duration = track?.duration?.toFormattedTime() ?: "",
+                audioUrl = track?.audioUrl ?: "",
                 isPlaying = isCurrentlyPlaying,
                 isFavorite = false,
                 imageUrl = ""

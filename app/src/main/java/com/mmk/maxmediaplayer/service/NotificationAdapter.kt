@@ -26,34 +26,48 @@ class NotificationAdapter @Inject constructor(
 ) : PlayerNotificationManager.MediaDescriptionAdapter {
 
     override fun getCurrentContentTitle(player: Player): CharSequence {
-        return player.mediaMetadata.title ?: context.getString(R.string.unknown_track)
+        return player.mediaMetadata.title?.toString() ?: context.getString(R.string.unknown_track)
     }
 
     override fun getCurrentContentText(player: Player): CharSequence {
-        return player.mediaMetadata.artist ?: context.getString(R.string.unknown_artist)
+        return player.mediaMetadata.artist?.toString() ?: context.getString(R.string.unknown_artist)
     }
 
-    override fun getCurrentLargeIcon(player: Player, callback: PlayerNotificationManager.BitmapCallback): Bitmap? {
+    override fun getCurrentLargeIcon(
+        player: Player,
+        callback: PlayerNotificationManager.BitmapCallback
+    ): Bitmap? {
         player.mediaMetadata.artworkUri?.let { uri ->
             CoroutineScope(Dispatchers.IO).launch {
-                val request = ImageRequest.Builder(context)
-                    .data(uri)
-                    .allowHardware(false)
-                    .build()
+                try {
+                    val request = ImageRequest.Builder(context)
+                        .data(uri)
+                        .allowHardware(false)
+                        .error(R.drawable.ic_music_note)
+                        .fallback(R.drawable.ic_music_note)
+                        .build()
 
-                val result = imageLoader.execute(request)
-                val bitmap = (result as? SuccessResult)?.drawable?.toBitmap()
-                callback.onBitmap(bitmap ?: getDefaultBitmap())
+                    when (val result = imageLoader.execute(request)) {
+                        is SuccessResult -> callback.onBitmap(result.drawable.toBitmap())
+                        else -> callback.onBitmap(getDefaultBitmap())
+                    }
+                } catch (e: Exception) {
+                    callback.onBitmap(getDefaultBitmap())
+                }
             }
         }
         return null
     }
 
-    override fun createCurrentContentIntent(player: Player): PendingIntent {
-        val intent = Intent(context, MainActivity::class.java).apply {
-            flags = Intent.FLAG_ACTIVITY_CLEAR_TOP or Intent.FLAG_ACTIVITY_SINGLE_TOP
-        }
-        return PendingIntent.getActivity(context, 0, intent, PendingIntent.FLAG_IMMUTABLE)
+    override fun createCurrentContentIntent(player: Player): PendingIntent? {
+        return PendingIntent.getActivity(
+            context,
+            0,
+            Intent(context, MainActivity::class.java).apply {
+                flags = Intent.FLAG_ACTIVITY_CLEAR_TOP
+            },
+            PendingIntent.FLAG_IMMUTABLE
+        )
     }
 
     private fun getDefaultBitmap(): Bitmap {

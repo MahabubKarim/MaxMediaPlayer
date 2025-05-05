@@ -12,6 +12,7 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material.icons.filled.Error
 import androidx.compose.material.icons.filled.Pause
 import androidx.compose.material.icons.filled.PlayArrow
@@ -51,6 +52,17 @@ fun PlayerScreen(
         label = "ProgressAnimation"
     )
 
+    Spacer(modifier = Modifier.height(100.dp))
+
+    // Back Button
+    Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.Start) {
+        IconButton(onClick = onNavigateBack) {
+            Icon(Icons.Default.ArrowBack, contentDescription = "Back")
+        }
+    }
+
+    Spacer(modifier = Modifier.height(16.dp))
+
     Column(
         modifier = Modifier
             .fillMaxSize()
@@ -58,6 +70,15 @@ fun PlayerScreen(
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.Center
     ) {
+        // Back Button
+        /*Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.Start) {
+            IconButton(onClick = onNavigateBack) {
+                Icon(Icons.Default.PlayArrow, contentDescription = "Back")
+            }
+        }
+
+        Spacer(modifier = Modifier.height(16.dp))*/
+
         // Track Info
         currentTrack?.let { track ->
             AsyncImage(

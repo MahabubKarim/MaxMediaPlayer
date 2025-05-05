@@ -32,7 +32,6 @@ class HomeViewModel @OptIn(UnstableApi::class)
     private var hasMore = true
 
     init {
-        Log.d("HomeViewModel", "Initializing with state: ${_uiState.value}")
         loadInitialData()
         setupPlaybackObserver()
     }
@@ -52,9 +51,7 @@ class HomeViewModel @OptIn(UnstableApi::class)
                     featuredPlaylists = featured,
                     recentPlays = recent,
                     hasMore = hasMore
-                ).also {
-                    Log.d("HomeViewModel", "New state: Success with ${tracks.size} tracks")
-                }
+                )
             } catch (e: Exception) {
                 _uiState.value = HomeUiState.Error(e.message ?: "Failed to load data")
             }
@@ -84,7 +81,7 @@ class HomeViewModel @OptIn(UnstableApi::class)
                     )
                 }
             } catch (e: Exception) {
-                currentPage-- // Rollback page increment on failure
+                currentPage--
                 _uiState.value = (_uiState.value as HomeUiState.Success).copy(
                     isLoadingMore = false
                 )
@@ -136,13 +133,17 @@ class HomeViewModel @OptIn(UnstableApi::class)
         }
     }
 
+    // ✅ UPDATED: Added onPlayStart parameter to start foreground service
     fun playTrackById(
         trackId: String,
         playerViewModel: PlayerViewModel,
+        onPlayStart: (Track) -> Unit,
         onSuccess: () -> Unit
     ) {
         viewModelScope.launch {
-            repository.getTrackById(trackId)?.let { track ->
+            val track = repository.getTrackById(trackId)
+            if (track != null) {
+                onPlayStart(track) // Start the service before playback
                 playerViewModel.playTrack(track)
                 onSuccess()
             }
