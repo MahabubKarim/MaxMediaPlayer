@@ -3,11 +3,10 @@ package com.mmk.maxmediaplayer.ui.navigation
 import android.content.Intent
 import androidx.annotation.OptIn
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.platform.LocalContext
 import androidx.core.content.ContextCompat
 import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.media3.common.util.UnstableApi
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
@@ -17,8 +16,6 @@ import com.mmk.maxmediaplayer.service.PlaybackService
 import com.mmk.maxmediaplayer.ui.screen.home.HomeScreen
 import com.mmk.maxmediaplayer.ui.screen.home.HomeViewModel
 import com.mmk.maxmediaplayer.ui.screen.player.PlayerScreen
-import com.mmk.maxmediaplayer.ui.screen.player.PlayerViewModel
-import kotlinx.coroutines.launch
 
 /**
  * Main navigation graph for the application
@@ -33,16 +30,13 @@ fun NavGraph(repository: MusicRepository) {
     NavHost(navController, startDestination = "home") {
         composable("home") {
             val homeViewModel: HomeViewModel = hiltViewModel()
-            val playerViewModel: PlayerViewModel = hiltViewModel()
 
             HomeScreen(
                 navController = navController,
                 viewModel = homeViewModel,
-                playerViewModel = playerViewModel,
-                onTrackClick = { trackId ->
+                onTrackClick = { track ->
                     homeViewModel.playTrackById(
-                        trackId = trackId,
-                        playerViewModel = playerViewModel,
+                        track = track,
                         onPlayStart = { track ->
                             val intent = Intent(context, PlaybackService::class.java)
                             ContextCompat.startForegroundService(context, intent)
@@ -51,12 +45,15 @@ fun NavGraph(repository: MusicRepository) {
                             // navController.navigate("player")
                         }
                     )
+                    homeViewModel.setCurrentTrack(track)
                 }
             )
         }
 
         composable("player") {
+            val homeViewModel: HomeViewModel = hiltViewModel()
             PlayerScreen(
+                viewModel = homeViewModel,
                 onNavigateBack = { navController.popBackStack() }
             )
         }

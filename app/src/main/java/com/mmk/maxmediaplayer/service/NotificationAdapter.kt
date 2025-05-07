@@ -4,6 +4,7 @@ import android.app.PendingIntent
 import android.content.Context
 import android.content.Intent
 import android.graphics.Bitmap
+import androidx.core.content.ContextCompat
 import androidx.core.graphics.drawable.toBitmap
 import androidx.media3.common.Player
 import androidx.media3.common.util.UnstableApi
@@ -71,6 +72,6 @@ class NotificationAdapter @Inject constructor(
     }
 
     private fun getDefaultBitmap(): Bitmap {
-        return context.getDrawable(R.drawable.ic_music_note)!!.toBitmap()
+        return ContextCompat.getDrawable(context, R.drawable.ic_music_note)!!.toBitmap()
     }
 }

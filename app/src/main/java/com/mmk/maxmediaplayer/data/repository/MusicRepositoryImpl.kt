@@ -1,5 +1,6 @@
 package com.mmk.maxmediaplayer.data.repository
 
+import android.content.Context
 import androidx.media3.exoplayer.ExoPlayer
 import com.mmk.maxmediaplayer.BuildConfig
 import com.mmk.maxmediaplayer.data.local.dao.TrackDao
@@ -8,6 +9,7 @@ import com.mmk.maxmediaplayer.data.remote.api.JamendoApi
 import com.mmk.maxmediaplayer.domain.model.Playlist
 import com.mmk.maxmediaplayer.domain.model.Track
 import com.mmk.maxmediaplayer.domain.repository.MusicRepository
+import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
 import javax.inject.Inject
@@ -15,12 +17,12 @@ import javax.inject.Singleton
 
 @Singleton
 class MusicRepositoryImpl @Inject constructor(
+    @ApplicationContext private val context: Context,
     private val api: JamendoApi,
-    private val player: ExoPlayer,
     private val trackDao: TrackDao
 ) : MusicRepository {
 
-    override suspend fun getTracksOnce(): List<Track> {
+    override suspend fun getAllTracksOnce(): List<Track> {
         val cachedTracks = trackDao.getAllTracksOnce().map { TrackMapper.toDomain(it) }
         return cachedTracks.ifEmpty {
             fetchTracksFromNetwork()
@@ -137,4 +139,44 @@ class MusicRepositoryImpl @Inject constructor(
             entities.map { TrackMapper.toDomain(it) }
         }
     }
+
+    /*verride suspend fun getLocalTracks(): List<Track> {
+        val localTracks = mutableListOf<Track>()
+        val collection = MediaStore.Audio.Media.EXTERNAL_CONTENT_URI
+        val projection = arrayOf(
+            MediaStore.Audio.Media._ID,
+            MediaStore.Audio.Media.TITLE,
+            MediaStore.Audio.Media.ARTIST,
+            MediaStore.Audio.Media.DURATION
+        )
+        val selection = "${MediaStore.Audio.Media.IS_MUSIC} != 0"
+        val sortOrder = "${MediaStore.Audio.Media.TITLE} ASC"
+
+        context.contentResolver.query(collection, projection, selection, null, sortOrder)?.use { cursor ->
+            val idCol = cursor.getColumnIndexOrThrow(MediaStore.Audio.Media._ID)
+            val titleCol = cursor.getColumnIndexOrThrow(MediaStore.Audio.Media.TITLE)
+            val artistCol = cursor.getColumnIndexOrThrow(MediaStore.Audio.Media.ARTIST)
+            val durationCol = cursor.getColumnIndexOrThrow(MediaStore.Audio.Media.DURATION)
+
+            while (cursor.moveToNext()) {
+                val id = cursor.getLong(idCol)
+                val title = cursor.getString(titleCol)
+                val artist = cursor.getString(artistCol)
+                val duration = cursor.getLong(durationCol)
+                val uri = ContentUris.withAppendedId(MediaStore.Audio.Media.EXTERNAL_CONTENT_URI, id)
+
+                localTracks.add(
+                    Track(
+                        id = id.toString(),
+                        title = title,
+                        artist = artist,
+                        duration = duration,
+                        audioUrl = uri.toString()
+                    )
+                )
+            }
+        }
+
+        return localTracks
+    }*/
 }

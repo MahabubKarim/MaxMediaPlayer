@@ -12,7 +12,7 @@ interface JamendoApi {
     suspend fun getTracks(
         @Query("client_id") clientId: String,
         @Query("format") format: String = "jsonpretty",
-        @Query("limit") limit: Int = 10,
+        @Query("limit") limit: Int = 200,
         @Query("offset") offset: Int = 0
     ): Response<TracksResponse>
 
@@ -23,10 +23,6 @@ interface JamendoApi {
         @Query("format") format: String = "jsonpretty",
         @Query("limit") limit: Int = 10
     ): Response<FeaturedPlaylistsResponse>
-
-    /*companion object {
-        const val BASE_URL = "https://api.jamendo.com/v3.0/"
-    }*/
 }
 
 data class TracksResponse(

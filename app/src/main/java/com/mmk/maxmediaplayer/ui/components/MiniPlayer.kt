@@ -34,7 +34,6 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import androidx.core.content.ContextCompat
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.media3.common.util.UnstableApi
@@ -42,11 +41,7 @@ import androidx.navigation.NavController
 import androidx.navigation.NavHostController
 import coil.compose.AsyncImage
 import com.mmk.maxmediaplayer.domain.model.Track
-import com.mmk.maxmediaplayer.service.PlaybackService
 import com.mmk.maxmediaplayer.ui.screen.home.HomeViewModel
-import com.mmk.maxmediaplayer.ui.screen.player.PlaybackState
-import com.mmk.maxmediaplayer.ui.screen.player.PlayerViewModel
-import kotlinx.coroutines.flow.map
 
 /**
  * Compact player visible at the bottom of screens during playback
@@ -59,26 +54,18 @@ import kotlinx.coroutines.flow.map
 @Composable
 fun MiniPlayer(
     viewModel: HomeViewModel = hiltViewModel(),
-    playerViewModel: PlayerViewModel = hiltViewModel(),
     navController: NavController,
     track: Track?,
-
-    onPlayPause: () -> Unit,
-    modifier: Modifier = Modifier
 ) {
 
-    val context = LocalContext.current
-    val playbackState by playerViewModel.playbackState.collectAsStateWithLifecycle()
-    val isPlaying = playbackState is PlaybackState.Paused
-    /*val isPlaying by playerViewModel.playbackState
-        .map { it is PlaybackState.Playing }
-        .collectAsStateWithLifecycle(false)*/
+    val isPlaying by viewModel.isPlaying.collectAsStateWithLifecycle()
 
     track?.let {
         Box(
             modifier = Modifier
                 .padding(12.dp)
                 .background(Color.Transparent)
+            // We need put a clickable here to run player UI player
         ) {
             Surface(
                 tonalElevation = 8.dp,
@@ -92,7 +79,7 @@ fun MiniPlayer(
                     }
             ) {
                 Row(
-                    modifier = modifier
+                    modifier = Modifier
                         .padding(8.dp)
                         .fillMaxWidth(),
                     verticalAlignment = Alignment.CenterVertically
@@ -124,7 +111,9 @@ fun MiniPlayer(
                     }
 
                     // Play/Pause controls
-                    IconButton(onClick = onPlayPause) {
+                    IconButton(onClick = {
+                        viewModel.togglePlayback()
+                    }) {
                         Icon(
                             imageVector = if (isPlaying) Icons.Default.Pause else Icons.Default.PlayArrow,
                             contentDescription = if (isPlaying) "Pause" else "Play"
@@ -132,7 +121,7 @@ fun MiniPlayer(
                     }
 
                     IconButton(onClick = {
-                        viewModel.shuffleAll(
+                        /*viewModel.shuffleAll(
                             playerViewModel = playerViewModel,
                             onPlayStart = { track ->
                                 ContextCompat.startForegroundService(
@@ -141,9 +130,9 @@ fun MiniPlayer(
                                 )
                             },
                             onSuccess = {
-                                navController.navigate("player")
+                                // navController.navigate("player")
                             }
-                        )
+                        )*/
                     }) {
                         Icon(
                             imageVector = Icons.Default.Shuffle,
@@ -169,10 +158,7 @@ fun MiniPlayerPreview() {
     )
     MiniPlayer(
         track = track,
-        onPlayPause = {},
-        modifier = Modifier.background(Color.White),
         viewModel = hiltViewModel(),
-        playerViewModel = hiltViewModel(),
         navController = NavHostController(LocalContext.current)
     )
 }

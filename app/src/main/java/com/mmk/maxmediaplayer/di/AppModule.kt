@@ -10,13 +10,10 @@ import androidx.media3.common.C
 import androidx.media3.common.util.UnstableApi
 import androidx.media3.exoplayer.ExoPlayer
 import androidx.media3.session.MediaSession
-import androidx.room.Room
 import coil.ImageLoader
 import com.google.gson.Gson
 import com.google.gson.GsonBuilder
 import com.mmk.maxmediaplayer.MainActivity
-import com.mmk.maxmediaplayer.data.local.AppDatabase
-import com.mmk.maxmediaplayer.data.local.AppDatabase.Companion.MIGRATION_1_2
 import com.mmk.maxmediaplayer.data.local.dao.TrackDao
 import com.mmk.maxmediaplayer.data.remote.api.JamendoApi
 import com.mmk.maxmediaplayer.data.repository.MusicRepositoryImpl
@@ -138,11 +135,11 @@ object AppModule {
     @Provides
     @Singleton
     fun provideMusicRepository(
+        @ApplicationContext context: Context,
         api: JamendoApi,
-        player: ExoPlayer,
         trackDao: TrackDao
     ): MusicRepository {
-        return MusicRepositoryImpl(api, player, trackDao)
+        return MusicRepositoryImpl(context, api, trackDao)
     }
 
     @Provides

@@ -1,27 +1,49 @@
 package com.mmk.maxmediaplayer.ui.components
 
+import android.annotation.SuppressLint
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.PlayArrow
 import androidx.compose.material.icons.filled.Pause
-import androidx.compose.material3.*
+import androidx.compose.material.icons.filled.PlayArrow
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import coil.compose.AsyncImage
-import com.mmk.maxmediaplayer.ui.model.TrackItem
+import com.mmk.maxmediaplayer.domain.model.Track
+import com.mmk.maxmediaplayer.ui.screen.home.HomeViewModel
 
 @Composable
 fun TrackListItem(
-    track: TrackItem,
+    viewModel: HomeViewModel = hiltViewModel(),
+    track: Track,
     onClick: () -> Unit,
     modifier: Modifier = Modifier
 ) {
+
+    val currentTrackId by viewModel.currentTrackId.collectAsStateWithLifecycle()
+    val isPlaying by viewModel.isPlaying.collectAsStateWithLifecycle()
+
+    val thisTrackIsPlaying = isPlaying && currentTrackId == track.id
+
     Row(
         modifier = modifier
             .fillMaxWidth()
@@ -48,16 +70,18 @@ fun TrackListItem(
                 color = MaterialTheme.colorScheme.onSurface
             )
             Text(
-                text = "${track.artist} • ${track.duration}",
+                text = "${track.artist} • ${track.duration.toTimeString()}",
                 style = MaterialTheme.typography.bodyMedium,
                 color = MaterialTheme.colorScheme.onSurfaceVariant
             )
         }
 
-        IconButton(onClick = onClick) {
+        IconButton(
+            onClick = onClick
+        ) {
             Icon(
-                imageVector = if (track.isPlaying) Icons.Default.Pause else Icons.Default.PlayArrow,
-                contentDescription = if (track.isPlaying) "Pause" else "Play",
+                imageVector = if (thisTrackIsPlaying) Icons.Default.Pause else Icons.Default.PlayArrow,
+                contentDescription = if (thisTrackIsPlaying) "Pause" else "Play",
                 tint = MaterialTheme.colorScheme.primary
             )
         }
@@ -67,7 +91,7 @@ fun TrackListItem(
 @Preview(showBackground = true)
 @Composable
 fun TrackListItemPreview() {
-    val sample = TrackItem(
+    val sample = Track(
         id = "1",
         title = "Starlit Reverie",
         artist = "Budiarti",
@@ -75,5 +99,15 @@ fun TrackListItemPreview() {
         audioUrl = "",
         imageUrl = "https://via.placeholder.com/150"
     )
-    TrackListItem(track = sample, onClick = {})
+    TrackListItem(
+        track = sample, onClick = {}
+    )
+}
+
+@SuppressLint("DefaultLocale")
+fun Long.toTimeString(): String {
+    val totalSeconds = this / 1000
+    val minutes = totalSeconds / 60
+    val seconds = totalSeconds % 60
+    return String.format("%02d:%02d", minutes, seconds)
 }

@@ -14,7 +14,7 @@ interface MusicRepository {
     suspend fun getRecentPlays(): List<Track>
     suspend fun getFeaturedPlaylists(): List<Playlist>
     suspend fun toggleFavorite(trackId: String)
-    suspend fun getTracksOnce(): List<Track>
+    suspend fun getAllTracksOnce(): List<Track>
     fun getFavoriteTracks(): Flow<List<Track>>
     suspend fun getCachedTracks(): Flow<List<Track>>
     suspend fun getTrackUrl(trackId: String): String

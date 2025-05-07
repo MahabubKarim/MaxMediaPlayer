@@ -7,12 +7,10 @@ import dagger.hilt.android.HiltAndroidApp
 
 @HiltAndroidApp
 class MaxMediaPlayerApp : Application() {
-
     override fun onCreate() {
         super.onCreate()
         createNotificationChannel()
     }
-
     private fun createNotificationChannel() {
         val channel = NotificationChannel(
             "playback_channel",
