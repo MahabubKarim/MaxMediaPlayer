@@ -67,4 +67,5 @@ com.mmk.maxmediaplayer/
 
 3. Add your API key to local.properties: JAMENDO_API_KEY="your_api_key_here"
 4. Build and run the app!
+5. And Enjoy!
 <div align="center"> <p>Made with ❤️ for music lovers</p> <p>Give a ⭐ if you like this project!</p> </div>
