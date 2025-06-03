@@ -127,11 +127,6 @@ class MusicRepositoryImpl @Inject constructor(
     override suspend fun toggleFavorite(trackId: String) {
         trackDao.toggleFavorite(trackId)
         // Ensure track exists in database
-        if (trackDao.getTrackById(trackId) == null) {
-            fetchTracksFromNetwork().firstOrNull { it.id == trackId }?.let {
-                trackDao.insert(TrackMapper.toEntity(it))
-            }
-        }
     }
 
     override fun getFavoriteTracks(): Flow<List<Track>> {

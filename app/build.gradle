@@ -94,6 +94,9 @@ dependencies {
     // Image Loading
     implementation libs.coil.compose
 
+    //Accompanist
+    implementation(libs.bundles.accompanist)
+
     // Testing
     implementation libs.androidx.material.icons.core.android
     testImplementation libs.junit

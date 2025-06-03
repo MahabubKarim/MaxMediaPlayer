@@ -1,6 +1,5 @@
 package com.mmk.maxmediaplayer.ui.components
 
-import android.content.Intent
 import androidx.annotation.OptIn
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -111,12 +110,13 @@ fun MiniPlayer(
                     }
 
                     // Play/Pause controls
-                    IconButton(onClick = {
-                        viewModel.togglePlayback()
-                    }) {
+                    IconButton(
+                        onClick = { viewModel.togglePlayback() }
+                    ) {
                         Icon(
                             imageVector = if (isPlaying) Icons.Default.Pause else Icons.Default.PlayArrow,
-                            contentDescription = if (isPlaying) "Pause" else "Play"
+                            contentDescription = if (isPlaying) "Pause" else "Play",
+                            tint = MaterialTheme.colorScheme.primary
                         )
                     }
 
@@ -136,7 +136,8 @@ fun MiniPlayer(
                     }) {
                         Icon(
                             imageVector = Icons.Default.Shuffle,
-                            contentDescription = "Shuffle"
+                            contentDescription = "Shuffle",
+                            tint = MaterialTheme.colorScheme.primary
                         )
                     }
                 }

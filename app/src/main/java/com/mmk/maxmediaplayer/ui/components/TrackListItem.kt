@@ -36,7 +36,6 @@ fun TrackListItem(
     viewModel: HomeViewModel = hiltViewModel(),
     track: Track,
     onClick: () -> Unit,
-    modifier: Modifier = Modifier
 ) {
 
     val currentTrackId by viewModel.currentTrackId.collectAsStateWithLifecycle()
@@ -45,7 +44,7 @@ fun TrackListItem(
     val thisTrackIsPlaying = isPlaying && currentTrackId == track.id
 
     Row(
-        modifier = modifier
+        modifier = Modifier
             .fillMaxWidth()
             .clickable(onClick = onClick)
             .padding(horizontal = 16.dp, vertical = 12.dp),

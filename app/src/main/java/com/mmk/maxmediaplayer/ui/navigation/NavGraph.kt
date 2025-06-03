@@ -23,7 +23,7 @@ import com.mmk.maxmediaplayer.ui.screen.player.PlayerScreen
  */
 @OptIn(UnstableApi::class)
 @Composable
-fun NavGraph(repository: MusicRepository) {
+fun NavGraph() {
     val navController = rememberNavController()
     val context = LocalContext.current
 
