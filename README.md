@@ -17,9 +17,9 @@ A modern Android music streaming app with offline capabilities, built using cutt
 - 📑 **Playlist Management** (Create/Edit/Delete)
 - 🎮 **Media Controls** in Notification & Lock Screen
 - 🎨 **Material 3** Dynamic Theming
-- 🔍 **Search Functionality**
+- 🔍 **Search Functionality (Coming Soon)**
 - 🔄 **Background Audio Playback**
-- ♻️ **Network State Awareness**
+- ♻️ **Network State Awareness (Coming Soon)** 
 
 ## Tech Stack 🛠️
 
